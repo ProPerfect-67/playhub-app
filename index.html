@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>PlayHub — Indie App Store</title>
+
+  <!-- Inter Font for Crisp Material Design 3 Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            play: {
+              green: '#01875F',
+              greenHover: '#016E4D',
+              greenLight: '#E6F4EA',
+              greenDarkBg: '#0F2E23',
+              greenDarkText: '#81C995',
+              surface: '#F8F9FA',
+              darkBg: '#131314',
+              darkSurface: '#1E1F20',
+              darkCard: '#242628',
+              darkBorder: '#33363A',
+            }
+          },
+          boxShadow: {
+            'card': '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+            'sheet': '0 -8px 30px rgba(0,0,0,0.12)',
+            'nav': '0 -1px 0 rgba(0,0,0,0.08)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Minimal utility animations and scrollbar hiding */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(24px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.26s cubic-bezier(0.2, 0, 0, 1) forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+
+    @keyframes indeterminateBar {
+      0% { transform: translateX(-100%) scaleX(0.4); }
+      50% { transform: translateX(30%) scaleX(0.7); }
+      100% { transform: translateX(140%) scaleX(0.4); }
+    }
+    .animate-indeterminate {
+      animation: indeterminateBar 1.35s infinite ease-in-out;
+    }
+
+    /* Smooth circular install progress ring */
+    .progress-ring-circle {
+      transition: stroke-dashoffset 0.2s linear;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    /* Safe bottom padding for mobile browsers */
+    .pb-safe {
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    }
+  </style>
+</head>
+<body class="bg-white dark:bg-play-darkBg text-slate-900 dark:text-slate-100 font-sans overflow-x-hidden selection:bg-play-green/20">
+
+  <!-- =====================================================================
+       MAIN STORE SHELL (Responsive Mobile-First with Desktop Centering)
+       ===================================================================== -->
+  <div id="appRoot" class="min-h-screen flex flex-col max-w-2xl mx-auto relative bg-white dark:bg-play-darkBg sm:border-x sm:border-slate-200/70 dark:sm:border-play-darkBorder/60">
+
+    <!-- STICKY TOP HEADER & PLAY STORE SEARCH PILL -->
+    <header class="sticky top-0 z-30 bg-white/95 dark:bg-play-darkBg/95 backdrop-blur-md border-b border-slate-100 dark:border-play-darkBorder/60 px-4 pt-3 pb-2.5 transition-colors">
+      <!-- Top Row: Search Pill + Theme Toggle -->
+      <div class="flex items-center gap-2.5">
+        <!-- Material 3 Pill Search Bar -->
+        <div class="flex-1 flex items-center bg-slate-100 dark:bg-play-darkSurface rounded-full px-3.5 py-2 border border-transparent focus-within:border-play-green/50 focus-within:bg-white dark:focus-within:bg-play-darkCard focus-within:shadow-sm transition-all">
+          <!-- Brand Mark inside search bar -->
+          <button id="brandHomeBtn" aria-label="PlayHub Home" class="shrink-0 mr-2.5 flex items-center justify-center rounded-lg focus:outline-none">
+            <svg class="w-6 h-6" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect width="32" height="32" rx="9" fill="#01875F"/>
+              <path d="M11 9.5L23.5 16L11 22.5V9.5Z" fill="#FFFFFF"/>
+              <path d="M11 9.5L17.5 16L11 22.5V9.5Z" fill="#A7F3D0" fill-opacity="0.45"/>
+            </svg>
+          </button>
+
+          <input
+            id="searchInput"
+            type="search"
+            autocomplete="off"
+            placeholder="Search apps & games..."
+            aria-label="Search apps and games"
+            class="w-full bg-transparent text-sm sm:text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
+          />
+
+          <!-- Clear Search Button -->
+          <button id="clearSearchBtn" aria-label="Clear search" class="hidden shrink-0 ml-1.5 p-1 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700 transition-colors">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Dark Mode Toggle Button -->
+        <button
+          id="themeToggleBtn"
+          aria-label="Toggle dark mode"
+          title="Toggle Light / Dark theme"
+          class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 dark:bg-play-darkSurface text-slate-700 dark:text-amber-300 hover:bg-slate-200/80 dark:hover:bg-play-darkCard transition-colors active:scale-95"
+        >
+          <!-- Moon icon (shown in light mode) -->
+          <svg id="iconMoon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <!-- Sun icon (shown in dark mode) -->
+          <svg id="iconSun" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Store Name & Preview Mode Status Row -->
+      <div class="flex items-center justify-between mt-2.5 px-0.5">
+        <div class="flex items-center gap-2">
+          <span id="storeBrandName" class="text-sm font-bold tracking-tight text-slate-800 dark:text-slate-100">PlayHub</span>
+          <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-play-greenLight dark:bg-play-greenDarkBg text-play-green dark:text-play-greenDarkText">Official Indie Store</span>
+        </div>
+
+        <!-- Preview Mode Pill (Automatically hidden when native window.StoreBridge is present) -->
+        <button
+          id="previewModeBadge"
+          type="button"
+          class="hidden items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 hover:bg-amber-200/70 dark:hover:bg-amber-900/60 transition-colors"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+          Preview Mode
+        </button>
+      </div>
+
+      <!-- Category Filter Pills (Visible on Store Tab) -->
+      <div id="categoryFilterBar" class="flex items-center gap-2 mt-3 overflow-x-auto no-scrollbar pb-0.5">
+        <!-- Populated dynamically by JS -->
+      </div>
+    </header>
+
+    <!-- MAIN SCROLLABLE CONTENT AREA -->
+    <main id="mainContent" class="flex-1 px-4 pt-4 pb-24 space-y-6">
+      <!-- Dynamic views rendered here (Store, Games, My Apps) -->
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR (Material Design 3) -->
+    <nav aria-label="Primary Navigation" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-30 bg-white/95 dark:bg-play-darkSurface/95 backdrop-blur-md border-t border-slate-200/80 dark:border-play-darkBorder pb-safe">
+      <div class="grid grid-cols-3 h-16 px-2">
+        <!-- Store Tab -->
+        <button data-tab="store" class="nav-tab flex flex-col items-center justify-center gap-1 group focus:outline-none">
+          <div class="nav-pill px-5 py-1 rounded-full transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <span class="text-[11px] font-semibold">Store</span>
+        </button>
+
+        <!-- Games Tab -->
+        <button data-tab="games" class="nav-tab flex flex-col items-center justify-center gap-1 group focus:outline-none">
+          <div class="nav-pill px-5 py-1 rounded-full transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="6" width="20" height="12" rx="4"/>
+              <path d="M6 12h4M8 10v4"/>
+              <circle cx="15" cy="11" r="1" fill="currentColor"/>
+              <circle cx="17.5" cy="13" r="1" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="text-[11px] font-semibold">Games</span>
+        </button>
+
+        <!-- My Apps Tab -->
+        <button data-tab="myapps" class="nav-tab relative flex flex-col items-center justify-center gap-1 group focus:outline-none">
+          <div class="nav-pill px-5 py-1 rounded-full transition-colors relative">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+            </svg>
+            <span id="myAppsCountDot" class="hidden absolute top-0.5 right-3 min-w-[16px] h-4 px-1 rounded-full bg-play-green text-white text-[10px] font-bold flex items-center justify-center">0</span>
+          </div>
+          <span class="text-[11px] font-semibold">My Apps</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- =====================================================================
+       FULL PLAY STORE-STYLE APP DETAIL SHEET / PAGE
+       ===================================================================== -->
+  <div id="detailOverlay" class="hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] flex justify-center overflow-hidden">
+    <div id="detailSheet" class="w-full max-w-2xl h-full bg-white dark:bg-play-darkBg flex flex-col animate-slide-up overflow-hidden sm:border-x sm:border-slate-200 dark:sm:border-play-darkBorder">
+      <!-- Detail Top Bar -->
+      <div class="shrink-0 flex items-center justify-between px-3 py-2.5 border-b border-slate-100 dark:border-play-darkBorder/70 bg-white/95 dark:bg-play-darkBg/95 backdrop-blur-md">
+        <button id="closeDetailBtn" aria-label="Back to store" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-play-darkSurface transition-colors active:scale-95">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </button>
+
+        <span id="detailTopTitle" class="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate px-2 opacity-0 transition-opacity duration-200"></span>
+
+        <button id="shareDetailBtn" aria-label="Share app" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-play-darkSurface transition-colors active:scale-95">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Detail Scrollable Body -->
+      <div id="detailBody" class="flex-1 overflow-y-auto px-5 pt-5 pb-12 space-y-6">
+        <!-- Populated dynamically when an app is tapped -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       SCREENSHOT LIGHTBOX MODAL
+       ===================================================================== -->
+  <div id="lightboxModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+    <div class="relative w-full max-w-xl">
+      <button id="closeLightboxBtn" aria-label="Close preview" class="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+      <div id="lightboxContent" class="rounded-2xl overflow-hidden shadow-2xl border border-white/15 bg-slate-900"></div>
+      <p id="lightboxCaption" class="text-center text-xs text-slate-300 mt-3 font-medium"></p>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       INFO / PREVIEW MODE MODAL (Replaces alert/confirm cleanly)
+       ===================================================================== -->
+  <div id="infoModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+    <div class="w-full max-w-sm rounded-3xl bg-white dark:bg-play-darkSurface border border-slate-200 dark:border-play-darkBorder p-6 shadow-2xl space-y-4">
+      <div class="flex items-center gap-3">
+        <div id="infoModalIcon" class="w-10 h-10 rounded-2xl bg-play-greenLight dark:bg-play-greenDarkBg text-play-green dark:text-play-greenDarkText flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+          </svg>
+        </div>
+        <h3 id="infoModalTitle" class="text-base font-bold text-slate-900 dark:text-white">Preview Mode Active</h3>
+      </div>
+      <div id="infoModalBody" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2"></div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button id="infoModalSecondaryBtn" class="hidden px-4 py-2 rounded-full text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-play-darkCard transition-colors"></button>
+        <button id="infoModalCloseBtn" class="px-5 py-2 rounded-full text-sm font-semibold bg-play-green hover:bg-play-greenHover text-white transition-colors">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       TOAST NOTIFICATION CONTAINER
+       ===================================================================== -->
+  <div id="toastContainer" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md pointer-events-none flex flex-col items-center gap-2"></div>
+
+  <!-- =====================================================================
+       APPLICATION LOGIC & NATIVE ANDROID BRIDGE
+       ===================================================================== -->
+  <script>
+    /**
+     * =========================================================================
+     * 1. STORE CONFIGURATION (EDIT THIS SECTION TO CUSTOMIZE YOUR STORE!)
+     * =========================================================================
+     * - Change `storeName` and `developerName` anytime.
+     * - Replace the GitHub Releases `downloadUrl` placeholders with your real
+     *   direct `.apk` links from GitHub Releases.
+     * - Optional: Place an external `apps.json` next to this file on Netlify or
+     *   GitHub Pages to update your app catalog live without touching HTML!
+     */
+    const STORE_CONFIG = {
+      storeName: 'PlayHub',
+      developerName: 'PlayHub Studios',
+      catalogUrl: './apps.json', // Automatically loads if present, otherwise uses built-in catalog below
+      defaultApps: [
+        {
+          id: 'gta-arcade',
+          name: 'GTA Arcade: Remastered',
+          shortTagline: 'High-octane missions, garage upgrades & dynamic lighting',
+          developer: 'PlayHub Originals',
+          status: 'live', // 'live' | 'coming_soon'
+          category: 'Games',
+          subCategory: 'Action',
+          version: '1.0',
+          versionCode: 1,
+          size: '18 MB',
+          rating: 4.9,
+          ratingCount: '240+',
+          ageRating: '12+',
+          packageName: 'com.gtarem.app',
+          downloadUrl: 'https://github.com/ProPerfect-67/playhub-app/releases/download/v1.0/GTA.Arcade.Remastered_1.0.4.apk',
+          description: 'High-octane mobile arcade action featuring level-based missions, a garage upgrade shop, and a dynamic day/night cycle.',
+          whatsNew: 'Launch release with mission levels, garage upgrades, and dynamic lighting.',
+          updatedDate: 'Launch Release',
+          featured: true,
+          accentGradient: 'from-fuchsia-600 via-purple-700 to-indigo-900',
+          tags: ['Arcade', 'Action', 'Offline', 'Single Player']
+        },
+        {
+          id: 'numeraflow',
+          name: 'NumeraFlow',
+          shortTagline: 'Mental math speed training & performance analytics',
+          developer: 'PlayHub Originals',
+          status: 'live',
+          category: 'Tools',
+          subCategory: 'Education',
+          version: '1.0',
+          versionCode: 1,
+          size: '6 MB',
+          rating: 4.8,
+          ratingCount: '180+',
+          ageRating: '3+',
+          packageName: 'com.numera.app',
+          downloadUrl: 'https://github.com/ProPerfect-67/playhub-app/releases/download/v1.0/NumeraFlow_1.0.2.apk',
+          description: 'Fast-paced mental math speed training and analytics dashboard built to sharpen calculation speed and accuracy.',
+          whatsNew: 'Launch release with speed drills, streak tracking, and performance analytics.',
+          updatedDate: 'Launch Release',
+          featured: false,
+          accentGradient: 'from-emerald-600 via-teal-600 to-cyan-700',
+          tags: ['Math', 'Brain Training', 'Analytics', 'Lightweight']
+        },
+        {
+          id: 'castaway-island',
+          name: 'Castaway: Island Escape',
+          shortTagline: '3D first-person island survival & boat escape adventure',
+          developer: 'PlayHub Originals',
+          status: 'coming_soon',
+          category: 'Games',
+          subCategory: 'Survival',
+          version: 'Beta',
+          versionCode: 0,
+          size: 'TBA',
+          rating: null,
+          ratingCount: 'Pre-reg',
+          ageRating: '12+',
+          packageName: 'com.playhub.castaway',
+          downloadUrl: '
+          description: 'First-person 3D island survival adventure. Scavenge resources, survive the wild, repair the motor boat, and escape the island.',
+          whatsNew: 'Currently in active Beta development. Pre-register now to unlock priority access on launch day.',
+          updatedDate: 'Coming Soon',
+          featured: true,
+          accentGradient: 'from-amber-500 via-orange-600 to-rose-700',
+          tags: ['3D Survival', 'Adventure', 'Crafting', 'Coming Soon']
+        }
+      ]
+    };
+
+    /**
+     * =========================================================================
+     * 2. APPLICATION STATE & STORAGE KEYS
+     * =========================================================================
+     */
+    const STORAGE_KEYS = {
+      THEME: 'playhub_theme',
+      PREREG: 'playhub_preregistered',
+      SIM_INSTALLED: 'playhub_sim_installed'
+    };
+
+    const state = {
+      apps: [...STORE_CONFIG.defaultApps],
+      activeTab: 'store',       // 'store' | 'games' | 'myapps'
+      activeCategory: 'For You',// 'For You' | 'Games' | 'Tools' | 'Coming Soon'
+      searchQuery: '',
+      selectedAppId: null,
+      featuredSlide: 0,
+      preregistered: new Set(),
+      simInstalled: {},         // { packageName: versionCode } used only in browser preview mode
+      installTasks: {},         // { packageName: { status: 'downloading'|'installing'|'error', progress: 0..100, message: '', timerId: null } }
+      isNativeBridge: false
+    };
+
+    /**
+     * =========================================================================
+     * 3. NATIVE ANDROID BRIDGE LAYER (window.StoreBridge)
+     * =========================================================================
+     * Automatically detects if running inside your Android WebView wrapper with
+     * PackageInstaller bridge. Falls back cleanly to Preview Simulation Mode in
+     * regular mobile/desktop browsers.
+     */
+    const NativeBridge = {
+      detect() {
+        try {
+          return typeof window.StoreBridge !== 'undefined' && window.StoreBridge !== null;
+        } catch (err) {
+          return false;
+        }
+      },
+
+      isInstalled(packageName) {
+        if (state.isNativeBridge) {
+          try {
+            if (typeof window.StoreBridge.isInstalled === 'function') {
+              return Boolean(window.StoreBridge.isInstalled(packageName));
+            }
+          } catch (err) {
+            console.error('[StoreBridge] isInstalled error:', err);
+          }
+        }
+        return Object.prototype.hasOwnProperty.call(state.simInstalled, packageName);
+      },
+
+      getInstalledVersionCode(packageName) {
+        if (state.isNativeBridge) {
+          try {
+            if (typeof window.StoreBridge.getInstalledVersionCode === 'function') {
+              return Number(window.StoreBridge.getInstalledVersionCode(packageName)) || 0;
+            }
+          } catch (err) {
+            console.error('[StoreBridge] getInstalledVersionCode error:', err);
+          }
+        }
+        return state.simInstalled[packageName] || 0;
+      },
+
+      hasUpdateAvailable(app) {
+        if (app.status !== 'live') return false;
+        if (!this.isInstalled(app.packageName)) return false;
+        const installedCode = this.getInstalledVersionCode(app.packageName);
+        return installedCode > 0 && app.versionCode > installedCode;
+      },
+
+      installApp(app) {
+        const pkg = app.packageName;
+        // Prevent duplicate concurrent installs for the same package
+        const existing = state.installTasks[pkg];
+        if (existing && (existing.status === 'downloading' || existing.status === 'installing')) {
+          return;
+        }
+
+        state.installTasks[pkg] = { status: 'downloading', progress: 0, message: 'Connecting...' };
+        renderAllViews();
+
+        if (state.isNativeBridge) {
+          try {
+            if (typeof window.StoreBridge.installApp === 'function') {
+              window.StoreBridge.installApp(app.downloadUrl, app.packageName, app.name);
+              return;
+            }
+          } catch (err) {
+            console.error('[StoreBridge] installApp error:', err);
+            window.onInstallStatus(pkg, 'error', 'Failed to start Android installer.');
+            return;
+          }
+        }
+
+        // Browser Preview Mode: Simulate clean streaming download -> PackageInstaller session
+        this.simulateInstall(app);
+      },
+
+      cancelInstall(packageName) {
+        const task = state.installTasks[packageName];
+        if (!task) return;
+
+        if (state.isNativeBridge) {
+          try {
+            if (typeof window.StoreBridge.cancelInstall === 'function') {
+              window.StoreBridge.cancelInstall(packageName);
+            }
+          } catch (err) {
+            console.error('[StoreBridge] cancelInstall error:', err);
+          }
+        }
+
+        if (task.timerId) {
+          clearInterval(task.timerId);
+        }
+        window.onInstallStatus(packageName, 'cancelled', 'Installation cancelled');
+      },
+
+      openApp(app) {
+        if (state.isNativeBridge) {
+          try {
+            if (typeof window.StoreBridge.openApp === 'function') {
+              window.StoreBridge.openApp(app.packageName);
+              return;
+            }
+          } catch (err) {
+            console.error('[StoreBridge] openApp error:', err);
+            showToast('Unable to launch ' + app.name, 'error');
+            return;
+          }
+        }
+
+        // Browser Preview Mode feedback
+        showToast(`Launching ${app.name} (Preview Mode)`, 'success');
+      },
+
+      uninstallSimulated(packageName, appName) {
+        if (state.isNativeBridge) return;
+        delete state.simInstalled[packageName];
+        savePersistedState();
+        renderAllViews();
+        showToast(`Removed ${appName} from preview device`);
+      },
+
+      simulateInstall(app) {
+        const pkg = app.packageName;
+        let progress = 0;
+
+        window.onInstallStatus(pkg, 'downloading', 'Streaming package...');
+
+        const timerId = setInterval(() => {
+          // Realistic variable download chunks
+          const step = Math.floor(Math.random() * 11) + 7;
+          progress = Math.min(100, progress + step);
+          window.onInstallProgress(pkg, progress);
+
+          if (progress >= 100) {
+            clearInterval(timerId);
+            window.onInstallStatus(pkg, 'installing', 'Installing via PackageInstaller...');
+
+            // Simulate Android PackageInstaller commit phase
+            const finishTimer = setTimeout(() => {
+              // Ensure it wasn't cancelled
+              if (!state.installTasks[pkg] || state.installTasks[pkg].status !== 'installing') return;
+              state.simInstalled[pkg] = app.versionCode || 1;
+              savePersistedState();
+              window.onInstallStatus(pkg, 'installed', `${app.name} installed cleanly!`);
+            }, 1050);
+
+            if (state.installTasks[pkg]) {
+              state.installTasks[pkg].timerId = finishTimer;
+            }
+          }
+        }, 210);
+
+        state.installTasks[pkg].timerId = timerId;
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 4. GLOBAL CALLBACKS FOR ANDROID PACKAGEINSTALLER
+     * =========================================================================
+     * Called directly from Kotlin/Java WebView via evaluateJavascript:
+     *   window.onInstallProgress("com.playhub.gtaarcade", 45);
+     *   window.onInstallStatus("com.playhub.gtaarcade", "installing", "");
+     *   window.onInstallStatus("com.playhub.gtaarcade", "installed", "");
+     */
+    window.onInstallProgress = function (packageName, percent) {
+      const clamped = Math.max(0, Math.min(100, Math.round(Number(percent) || 0)));
+      const prev = state.installTasks[packageName] || {};
+      state.installTasks[packageName] = {
+        ...prev,
+        status: 'downloading',
+        progress: clamped
+      };
+      updateLiveInstallUI(packageName);
+    };
+
+    window.onInstallStatus = function (packageName, status, message) {
+      const app = state.apps.find(a => a.packageName === packageName);
+      const appName = app ? app.name : packageName;
+
+      if (status === 'downloading') {
+        const prev = state.installTasks[packageName] || {};
+        state.installTasks[packageName] = {
+          ...prev,
+          status: 'downloading',
+          progress: prev.progress || 0,
+          message: message || 'Downloading...'
+        };
+      } else if (status === 'installing') {
+        const prev = state.installTasks[packageName] || {};
+        state.installTasks[packageName] = {
+          ...prev,
+          status: 'installing',
+          progress: 100,
+          message: message || 'Installing...'
+        };
+      } else if (status === 'installed') {
+        delete state.installTasks[packageName];
+        showToast(message || `${appName} is ready to open`, 'success');
+      } else if (status === 'cancelled') {
+        delete state.installTasks[packageName];
+        showToast(message || 'Download cancelled');
+      } else if (status === 'error') {
+        delete state.installTasks[packageName];
+        showToast(message || `Could not install ${appName}`, 'error');
+      }
+
+      renderAllViews();
+    };
+
+    /**
+     * =========================================================================
+     * 5. CUSTOM VECTOR ARTWORKS (ZERO BROKEN EXTERNAL IMAGES)
+     * =========================================================================
+     * High-craft custom SVG icons and stylized preview screenshots for each app.
+     */
+    function getAppIconSVG(appId, sizeClass = 'w-16 h-16') {
+      if (appId === 'gta-arcade') {
+        return `
+          <svg class="${sizeClass} rounded-[22%] shadow-sm shrink-0" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="GTA Arcade Icon">
+            <defs>
+              <linearGradient id="gtaBg" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#1E1B4B"/>
+                <stop offset="50%" stop-color="#701A75"/>
+                <stop offset="100%" stop-color="#F97316"/>
+              </linearGradient>
+              <linearGradient id="gtaSun" x1="60" y1="22" x2="60" y2="74" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FDE047"/>
+                <stop offset="100%" stop-color="#FB7185"/>
+              </linearGradient>
+            </defs>
+            <rect width="120" height="120" rx="26" fill="url(#gtaBg)"/>
+            <!-- Retro Sun -->
+            <circle cx="60" cy="52" r="26" fill="url(#gtaSun)"/>
+            <rect x="30" y="54" width="60" height="3" fill="#701A75" fill-opacity="0.5"/>
+            <rect x="30" y="61" width="60" height="4" fill="#701A75" fill-opacity="0.65"/>
+            <!-- City Skyline -->
+            <path d="M0 78H16V56H28V70H38V44H50V66H74V48H86V68H98V54H110V78H120V120H0V78Z" fill="#0F172A" fill-opacity="0.85"/>
+            <!-- Perspective Neon Road -->
+            <path d="M44 78L10 120H110L76 78H44Z" fill="#1E293B"/>
+            <path d="M59 80L56 120H64L61 80H59Z" fill="#FDE047"/>
+            <!-- Stylized Sports Car Rear -->
+            <path d="M35 90C36 81 42 76 60 76C78 76 84 81 85 90L89 96V106H79V101H41V106H31V96L35 90Z" fill="#F8FAFC"/>
+            <path d="M42 87L46 79H74L78 87H42Z" fill="#0F172A"/>
+            <!-- Neon Tail Lights -->
+            <rect x="35" y="92" width="14" height="4" rx="2" fill="#F43F5E"/>
+            <rect x="71" y="92" width="14" height="4" rx="2" fill="#F43F5E"/>
+            <rect x="52" y="93" width="16" height="3" rx="1.5" fill="#38BDF8"/>
+            <!-- Badge -->
+            <rect x="12" y="12" width="38" height="18" rx="6" fill="#0F172A" fill-opacity="0.65"/>
+            <text x="31" y="24.5" text-anchor="middle" fill="#FDE047" font-family="Inter, sans-serif" font-weight="800" font-size="11" letter-spacing="0.5">GTA</text>
+          </svg>
+        `;
+      }
+
+      if (appId === 'numeraflow') {
+        return `
+          <svg class="${sizeClass} rounded-[22%] shadow-sm shrink-0" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="NumeraFlow Icon">
+            <defs>
+              <linearGradient id="nfBg" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#059669"/>
+                <stop offset="55%" stop-color="#0D9488"/>
+                <stop offset="100%" stop-color="#1D4ED8"/>
+              </linearGradient>
+            </defs>
+            <rect width="120" height="120" rx="26" fill="url(#nfBg)"/>
+            <!-- Subtle Grid -->
+            <path d="M0 40H120M0 80H120M40 0V120M80 0V120" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1.5"/>
+            <!-- Flowing Speed Wave -->
+            <path d="M16 86C34 86 38 42 58 42C74 42 74 74 90 66C98 62 103 44 106 34" stroke="#A7F3D0" stroke-width="7" stroke-linecap="round"/>
+            <circle cx="106" cy="34" r="6" fill="#FFFFFF"/>
+            <!-- Floating Math Glyphs -->
+            <rect x="18" y="18" width="30" height="30" rx="9" fill="#FFFFFF" fill-opacity="0.18"/>
+            <path d="M33 25V41M25 33H41" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+            <rect x="72" y="72" width="30" height="30" rx="9" fill="#0F172A" fill-opacity="0.25"/>
+            <path d="M81 81L93 93M93 81L81 93" stroke="#6EE7B7" stroke-width="3.5" stroke-linecap="round"/>
+            <!-- Lightning Bolt Accent -->
+            <path d="M62 20L52 38H61L57 54L70 34H60L62 20Z" fill="#FDE047"/>
+          </svg>
+        `;
+      }
+
+      if (appId === 'castaway-island') {
+        return `
+          <svg class="${sizeClass} rounded-[22%] shadow-sm shrink-0" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Castaway Icon">
+            <defs>
+              <linearGradient id="castSky" x1="60" y1="0" x2="60" y2="85" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#0284C7"/>
+                <stop offset="55%" stop-color="#F59E0B"/>
+                <stop offset="100%" stop-color="#FB7185"/>
+              </linearGradient>
+              <linearGradient id="castSea" x1="60" y1="76" x2="60" y2="120" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#0D9488"/>
+                <stop offset="100%" stop-color="#0F172A"/>
+              </linearGradient>
+            </defs>
+            <rect width="120" height="120" rx="26" fill="url(#castSky)"/>
+            <!-- Setting Sun -->
+            <circle cx="76" cy="56" r="19" fill="#FEF08A"/>
+            <!-- Ocean -->
+            <rect y="76" width="120" height="44" fill="url(#castSea)"/>
+            <path d="M12 90C24 86 36 94 48 90C60 86 72 94 84 90C96 86 108 94 116 90" stroke="#5EEAD4" stroke-opacity="0.45" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Sandy Island -->
+            <path d="M8 82C18 66 56 64 74 82H8Z" fill="#FCD34D"/>
+            <!-- Palm Tree -->
+            <path d="M36 74C38 58 43 44 50 34" stroke="#78350F" stroke-width="5" stroke-linecap="round"/>
+            <path d="M50 34C38 28 24 32 18 40C28 38 38 38 50 34Z" fill="#15803D"/>
+            <path d="M50 34C48 22 60 16 70 20C60 24 55 28 50 34Z" fill="#16A34A"/>
+            <path d="M50 34C62 32 72 40 74 50C64 44 58 39 50 34Z" fill="#15803D"/>
+            <!-- Motor Boat Silhouette -->
+            <path d="M68 96H104L97 107H74L68 96Z" fill="#F8FAFC"/>
+            <path d="M78 96L83 88H94V96H78Z" fill="#E11D48"/>
+          </svg>
+        `;
+      }
+
+      // Generic fallback icon for any future app added via apps.json
+      return `
+        <svg class="${sizeClass} rounded-[22%] shadow-sm shrink-0" viewBox="0 0 120 120" fill="none">
+          <rect width="120" height="120" rx="26" fill="#01875F"/>
+          <path d="M44 36L86 60L44 84V36Z" fill="#FFFFFF"/>
+        </svg>
+      `;
+    }
+
+    /**
+     * Generates 3 stylized SVG preview screenshots per app for the Play Store gallery.
+     */
+    function getAppScreenshots(appId) {
+      if (appId === 'gta-arcade') {
+        return [
+          {
+            caption: 'Level-Based Night City Missions & Minimap HUD',
+            svg: `
+              <svg viewBox="0 0 360 210" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="gShot1" x1="0" y1="0" x2="0" y2="210" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#0F172A"/>
+                    <stop offset="55%" stop-color="#3B0764"/>
+                    <stop offset="100%" stop-color="#1E1B4B"/>
+                  </linearGradient>
+                </defs>
+                <rect width="360" height="210" fill="url(#gShot1)"/>
+                <!-- Skyline -->
+                <path d="M0 115H26V72H52V98H74V54H106V90H136V64H162V104H210V58H244V94H276V70H310V92H334V62H360V125H0V115Z" fill="#090D1F"/>
+                <!-- Windows glow -->
+                <g fill="#FDE047" fill-opacity="0.65">
+                  <rect x="82" y="64" width="5" height="6"/><rect x="92" y="64" width="5" height="6"/>
+                  <rect x="82" y="76" width="5" height="6"/><rect x="218" y="68" width="6" height="6"/>
+                  <rect x="230" y="68" width="6" height="6"/><rect x="218" y="80" width="6" height="6"/>
+                </g>
+                <!-- Perspective Highway -->
+                <path d="M135 115L20 210H340L225 115H135Z" fill="#1E293B"/>
+                <path d="M135 115L20 210" stroke="#EC4899" stroke-width="3"/>
+                <path d="M225 115L340 210" stroke="#38BDF8" stroke-width="3"/>
+                <path d="M178 122L174 210H186L182 122H178Z" fill="#FDE047" stroke-dasharray="10 10"/>
+                <!-- Player Muscle Car -->
+                <g transform="translate(132, 138)">
+                  <rect x="6" y="24" width="84" height="22" rx="7" fill="#E11D48"/>
+                  <path d="M18 24L26 10H70L78 24H18Z" fill="#111827"/>
+                  <rect x="12" y="30" width="18" height="6" rx="3" fill="#FDA4AF"/>
+                  <rect x="66" y="30" width="18" height="6" rx="3" fill="#FDA4AF"/>
+                  <rect x="34" y="31" width="28" height="4" rx="2" fill="#38BDF8"/>
+                </g>
+                <!-- Mission Top HUD -->
+                <rect x="14" y="14" width="142" height="30" rx="8" fill="#0F172A" fill-opacity="0.8" stroke="#EC4899" stroke-opacity="0.5"/>
+                <text x="24" y="28" fill="#F472B6" font-family="Inter,sans-serif" font-size="8" font-weight="700">MISSION 04 • NIGHT RUN</text>
+                <text x="24" y="39" fill="#FFFFFF" font-family="Inter,sans-serif" font-size="9" font-weight="600">Escape Sector 7 — 01:24</text>
+                <!-- Speedometer + Cash -->
+                <rect x="268" y="14" width="78" height="30" rx="8" fill="#0F172A" fill-opacity="0.8"/>
+                <text x="307" y="28" text-anchor="middle" fill="#4ADE80" font-family="Inter,sans-serif" font-size="10" font-weight="800">$24,800</text>
+                <text x="307" y="39" text-anchor="middle" fill="#94A3B8" font-family="Inter,sans-serif" font-size="8" font-weight="600">186 KM/H</text>
+                <!-- Minimap -->
+                <circle cx="38" cy="174" r="22" fill="#0F172A" fill-opacity="0.88" stroke="#38BDF8" stroke-width="2"/>
+                <path d="M24 174H52M38 158V190" stroke="#334155" stroke-width="3"/>
+                <circle cx="38" cy="174" r="3.5" fill="#FDE047"/>
+                <circle cx="46" cy="166" r="2.5" fill="#EF4444"/>
+              </svg>
+            `
+          },
+          {
+            caption: 'Garage Upgrade Shop — Turbo, Armor & Handling',
+            svg: `
+              <svg viewBox="0 0 360 210" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+                <rect width="360" height="210" fill="#111827"/>
+                <rect x="0" y="138" width="360" height="72" fill="#1F2937"/>
+                <!-- Spotlight -->
+                <polygon points="115,0 165,0 225,155 55,155" fill="#38BDF8" fill-opacity="0.1"/>
+                <!-- Garage Header -->
+                <text x="20" y="28" fill="#FFFFFF" font-family="Inter,sans-serif" font-size="13" font-weight="800">GARAGE SHOP</text>
+                <rect x="255" y="14" width="88" height="22" rx="11" fill="#065F46"/>
+                <text x="299" y="28" text-anchor="middle" fill="#6EE7B7" font-family="Inter,sans-serif" font-size="10" font-weight="700">$42,500</text>
+                <!-- Turntable & Car Side Profile -->
+                <ellipse cx="122" cy="154" rx="82" ry="15" fill="#0F172A" stroke="#38BDF8" stroke-opacity="0.45"/>
+                <path d="M62 142L74 124H108L128 110H168L182 126L190 132V144H62V142Z" fill="#F97316"/>
+                <path d="M112 124L129 113H164L174 124H112Z" fill="#0F172A"/>
+                <circle cx="88" cy="144" r="13" fill="#0F172A" stroke="#94A3B8" stroke-width="3"/>
+                <circle cx="164" cy="144" r="13" fill="#0F172A" stroke="#94A3B8" stroke-width="3"/>
+                <!-- Upgrade Stats Card -->
+                <rect x="218" y="48" width="126" height="142" rx="12" fill="#1E293B" stroke="#334155"/>
+                <text x="230" y="68" fill="#F8FAFC" font-family="Inter,sans-serif" font-size="10" font-weight="700">VIPER GT-X</text>
+                <!-- Stat Bars -->
+                <text x="230" y="88" fill="#94A3B8" font-family="Inter,sans-serif" font-size="8" font-weight="600">TURBO ENGINE</text>
+                <rect x="230" y="93" width="102" height="6" rx="3" fill="#0F172A"/>
+                <rect x="230" y="93" width="84" height="6" rx="3" fill="#F97316"/>
+                <text x="230" y="114" fill="#94A3B8" font-family="Inter,sans-serif" font-size="8" font-weight="600">NITRO BOOST</text>
+                <rect x="230" y="119" width="102" height="6" rx="3" fill="#0F172A"/>
+                <rect x="230" y="119" width="72" height="6" rx="3" fill="#38BDF8"/>
+                <text x="230" y="140" fill="#94A3B8" font-family="Inter,sans-serif" font-size="8" font-weight="600">ARMOR PLATING</text>
+                <rect x="230" y="145" width="102" height="6" rx="3" fill="#0F172A"/>
+                <rect x="230" y="145" width="60" height="6" rx="3" fill="#4ADE80"/>
+                <!-- Upgrade CTA -->
+                <rect x="230" y="160" width="102" height="22" rx="8" fill="#01875F"/>
+                <text x="281" y="174" text-anchor="middle" fill="#FFFFFF" font-family="Inter,sans-serif" font-size="9" font-weight="700">UPGRADE • $4,500</text>
+              </svg>
+            `
+          },
+          {
+            caption: 'Dynamic Day / Sunset / Night Cycle Lighting',
+            svg: `
+              <svg viewBox="0 0 360 210" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="gShot3" x1="0" y1="0" x2="360" y2="120" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#0284C7"/>
+                    <stop offset="50%" stop-color="#FB923C"/>
+                    <stop offset="100%" stop-color="#1E1B4B"/>
+                  </linearGradient>
+                </defs>
+                <rect width="360" height="210" fill="url(#gShot3)"/>
+                <circle cx="180" cy="76" r="32" fill="#FEF08A" fill-opacity="0.9"/>
+                <path d="M0 120H360V210H0V120Z" fill="#1E293B"/>
+                <path d="M0 156H360" stroke="#FDE047" stroke-width="3" stroke-dasharray="18 14"/>
+                <!-- Labels -->
+                <rect x="18" y="18" width="68" height="22" rx="11" fill="#0F172A" fill-opacity="0.55"/>
+                <text x="52" y="32" text-anchor="middle" fill="#FFFFFF" font-family="Inter,sans-serif" font-size="9" font-weight="700">DAYLIGHT</text>
+                <rect x="146" y="18" width="68" height="22" rx="11" fill="#0F172A" fill-opacity="0.55"/>
+                <text x="180" y="32" text-anchor="middle" fill="#FDE047" font-family="Inter,sans-serif" font-size="9" font-weight="700">SUNSET</text>
+                <rect x="274" y="18" width="68" height="22" rx="11" fill="#0F172A" fill-opacity="0.55"/>
+                <text x="308" y="32" text-anchor="middle" fill="#C084FC" font-family="Inter,sans-serif" font-size="9" font-weight="700">NEON NIGHT</text>
+                <!-- Action Car -->
+                <rect x="120" y="142" width="120" height="32" rx="10" fill="#F43F5E"/>
+                <rect x="146" y="128" width="64" height="18" rx="6" fill="#0F172A"/>
+                <circle cx="148" cy="174" r="12" fill="#0F172A" stroke="#CBD5E1" stroke-width="3"/>
+                <circle cx="212" cy="174" r="12" fill="#0F172A" stroke="#CBD5E1" stroke-width="3"/>
+              </svg>
+            `
+          }
+        ];
+      }
+
+      if (appId === 'numeraflow') {
+        return [
+          {
+            caption: 'Lightning-Fast Mental Math Speed Drills',
+            svg: `
+              <svg viewBox="0 0 360 210" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+                <rect width="360" height="210" fill="#0F172A"/>
+                <!-- Top Bar -->
+                <rect x="20" y="18" width="320" height="8" rx="4" fill="#1E293B"/>
+                <rect x="20" y="18" width="236" height="8" rx="4" fill="#10B981"/>
+                <text x="20" y="44" fill="#94A3B8" font-family="Inter,sans-serif" font-size="9" font-weight="700">SPEED DRILL • 00:42</text>
+                <rect x="266" y="32" width="74" height="20" rx="10" fill="#F59E0B" fill-opacity="0.2"/>
+                <text x="303" y="45" text-anchor="middle" fill="#FBBF24" font-family="Inter,sans-serif" font-size="9" font-weight="800">STREAK 18x</text>
+                <!-- Main Equation Card -->
+                <rect x="52" y="62" width="256" height="68" rx="16" fill="#1E293B" stroke="#10B981" stroke-opacity="0.4"/>
+                <text x="180" y="106" text-anchor="middle" fill="#FFFFFF" font-family="Inter,sans-serif" font-size="30" font-weight="800">47 × 8 = ?</text>
+                <!-- Answer Options -->
+                <rect x="52" y="144" width="122" height="44" rx="12" fill="#1E293B" stroke="#334155"/>
+                <text x="113" y="171" text-anchor="middle" fill="#E2E8F0" font-family="Inter,sans-serif" font-size="16" font-weight="700">368</text>
+                <rect x="186" y="144" width="122" height="44" rx="12" fill="#059669"/>
+                <text x="247" y="171" text-anchor="middle" fill="#FFFFFF" font-family="Inter,sans-serif" font-size="16" font-weight="800">376 ✓</text>
+              </svg>
+            `
+          },
+          {
+            caption: 'Performance Analytics & Speed Dashboard',
+            svg: `
+              <svg viewBox="0 0 360 210" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+                <rect width="360" height="210" fill="#F8FAFC"/>
+                <text x="22" y="30" fill="#0F172A" font-family="Inter,sans-serif" font-size="13" font-weight="800">NumeraFlow Analytics</text>
+                <!-- KPI Pills -->
+                <rect x="22" y="42" width="98" height="52" rx="12" fill="#FFFFFF" stroke="#E2E8F0"/>
+                <text x="34" y="60" fill="#64748B" font-family="Inter,sans-serif" font-size="8" font-weight="700">ACCURACY</text>
+                <text x="34" y="82" fill="#059669" font-family="Inter,sans-serif" font-size="18" font-weight="800">96.4%</text>
+
+                <rect x="131" y="42" width="98" height="52" rx="12" fill="#FFFFFF" stroke="#E2E8F0"/>
+                <text x="143" y="60" fill="#64748B" font-family="Inter,sans-serif" font-size="8" font-weight="700">AVG SPEED</text>
+                <text x="143" y="82" fill="#2563EB" font-family="Inter,sans-serif" font-size="18" font-weight="800">1.4s</text>
+
+                <rect x="240" y="42" width="98" height="52" rx="12" fill="#FFFFFF" stroke="#E2E8F0"/>
+                <text x="252" y="60" fill="#64748B" font-family="Inter,sans-serif" font-size="8" font-weight="700">BEST STREAK</text>
+                <text x="252" y="82" fill="#D97706" font-family="Inter,sans-serif" font-size="18" font-weight="800">42</text>
+
+                <!-- Trend Graph Card -->
+                <rect x="22" y="106" width="316" height="88" rx="14" fill="#FFFFFF" stroke="#E2E8F0"/>
+                <text x="36" y="126" fill="#334155" font-family="Inter,sans-serif" font-size="9" font-weight="700">WEEKLY CALCULATION VELOCITY</text>
+                <path d="M40 176L88 164L136 168L184 148L232 140L280 132L320 124" fill="none" stroke="#059669" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="320" cy="124" r="5" fill="#059669"/>
+                <circle cx="232" cy="140" r="4" fill="#10B981"/>
+                <circle cx="184" cy="148" r="4" fill="#10B981"/>
+              </svg>
+            `
+          },
+          {
+            caption: 'Adaptive Training Modes & Daily Mastery',
+            svg: `
+              <svg viewBox="0 0 360 210" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="nfShot3" x1="0" y1="0" x2="360" y2="210" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#065F46"/>
+                    <stop offset="100%" stop-color="#1E3A8A"/>
+                  </linearGradient>
+                </defs>
+                <rect width="360" height="210" fill="url(#nfShot3)"/>
+                <text x="24" y="34" fill="#FFFFFF" font-family="Inter,sans-serif" font-size="14" font-weight="800">Choose Training Flow</text>
+                <rect x="24" y="52" width="148" height="62" rx="14" fill="#FFFFFF" fill-opacity="0.14"/>
+                <text x="38" y="76" fill="#A7F3D0" font-family="Inter,sans-serif" font-size="11" font-weight="800">SPRINT 60s</text>
+                <text x="38" y="96" fill="#E2E8F0" font-family="Inter,sans-serif" font-size="9">Beat your personal best</text>
+
+                <rect x="188" y="52" width="148" height="62" rx="14" fill="#FFFFFF" fill-opacity="0.14"/>
+                <text x="202" y="76" fill="#FDE047" font-family="Inter,sans-serif" font-size="11" font-weight="800">PRECISION RUN</text>
+                <text x="202" y="96" fill="#E2E8F0" font-family="Inter,sans-serif" font-size="9">Zero mistakes allowed</text>
+
+                <rect x="24" y="128" width="312" height="58" rx="14" fill="#0F172A" fill-opacity="0.45"/>
+                <text x="42" y="154" fill="#FFFFFF" font-family="Inter,sans-serif" font-size="11" font-weight="700">Daily Goal: 50 / 50 Problems Completed</text>
+                <rect x="42" y="166" width="276" height="8" rx="4" fill="#334155"/>
+                <rect x="42" y="166" width="276" height="8" rx="4" fill="#34D399"/>
+              </svg>
+            `
+          }
+        ];
+      }
+
+      // Castaway: Island Escape screenshots
+      return [
+        {
+          caption: 'First-Person 3D Island Exploration & Survival HUD',
+          svg: `
+            <svg viewBox="0 0 360 210" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="cShot1" x1="0" y1="0" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#0284C7"/>
+                  <stop offset="65%" stop-color="#38BDF8"/>
+                  <stop offset="100%" stop-color="#FDE68A"/>
+                </linearGradient>
+              </defs>
+              <rect width="360" height="120" fill="url(#cShot1)"/>
+              <circle cx="290" cy="44" r="20" fill="#FEF08A"/>
+              <!-- Ocean & Island Beach -->
+              <rect y="114" width="360" height="44" fill="#0D9488"/>
+              <path d="M0 150C90 132 230 138 360 156V210H0V150Z" fill="#FDE047"/>
+              <!-- Distant Volcano Peak -->
+              <path d="M90 116L148 64L210 116H90Z" fill="#0F766E"/>
+              <path d="M126 116L172 78L228 116H126Z" fill="#115E59"/>
+              <!-- Survival HUD -->
+              <rect x="14" y="14" width="122" height="42" rx="10" fill="#0F172A" fill-opacity="0.72"/>
+              <text x="24" y="29" fill="#FCA5A5" font-family="Inter,sans-serif" font-size="8" font-weight="700">HP</text>
+              <rect x="44" y="23" width="80" height="6" rx="3" fill="#334155"/><rect x="44" y="23" width="68" height="6" rx="3" fill="#EF4444"/>
+              <text x="24" y="45" fill="#7DD3FC" font-family="Inter,sans-serif" font-size="8" font-weight="700">H2O</text>
+              <rect x="44" y="39" width="80" height="6" rx="3" fill="#334155"/><rect x="44" y="39" width="52" height="6" rx="3" fill="#38BDF8"/>
+              <!-- Coming Soon Beta Watermark -->
+              <rect x="254" y="176" width="92" height="22" rx="11" fill="#0F172A" fill-opacity="0.8"/>
+              <text x="300" y="190" text-anchor="middle" fill="#FDE047" font-family="Inter,sans-serif" font-size="8" font-weight="800">BETA PREVIEW</text>
+            </svg>
+          `
+        },
+        {
+          caption: 'Scavenge Resources & Repair the Motor Boat to Escape',
+          svg: `
+            <svg viewBox="0 0 360 210" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+              <rect width="360" height="210" fill="#1C1917"/>
+              <text x="22" y="32" fill="#FEF3C7" font-family="Inter,sans-serif" font-size="13" font-weight="800">BOAT ESCAPE CHECKLIST</text>
+              <!-- Checklist Items -->
+              <rect x="22" y="48" width="190" height="36" rx="10" fill="#292524" stroke="#44403C"/>
+              <circle cx="40" cy="66" r="8" fill="#10B981"/><text x="58" y="70" fill="#F5F5F4" font-family="Inter,sans-serif" font-size="10" font-weight="600">Driftwood Hull Patch (4/4)</text>
+
+              <rect x="22" y="94" width="190" height="36" rx="10" fill="#292524" stroke="#44403C"/>
+              <circle cx="40" cy="112" r="8" fill="#F59E0B"/><text x="58" y="116" fill="#F5F5F4" font-family="Inter,sans-serif" font-size="10" font-weight="600">Spark Plug & Engine (1/2)</text>
+
+              <rect x="22" y="140" width="190" height="36" rx="10" fill="#292524" stroke="#44403C"/>
+              <circle cx="40" cy="158" r="8" fill="#57534E"/><text x="58" y="162" fill="#A8A29E" font-family="Inter,sans-serif" font-size="10" font-weight="600">Reserve Fuel Canister (0/1)</text>
+
+              <!-- Boat Illustration Card -->
+              <rect x="228" y="48" width="110" height="128" rx="14" fill="#0F172A" stroke="#334155"/>
+              <path d="M244 128H322L310 148H256L244 128Z" fill="#E2E8F0"/>
+              <path d="M262 128L272 108H300V128H262Z" fill="#F97316"/>
+              <text x="283" y="166" text-anchor="middle" fill="#38BDF8" font-family="Inter,sans-serif" font-size="9" font-weight="700">65% REPAIRED</text>
+            </svg>
+          `
+        },
+        {
+          caption: 'Dynamic Weather & Survive the Wild Nights',
+          svg: `
+            <svg viewBox="0 0 360 210" class="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="cShot3" x1="0" y1="0" x2="0" y2="210" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#0F172A"/>
+                  <stop offset="100%" stop-color="#1E293B"/>
+                </linearGradient>
+              </defs>
+              <rect width="360" height="210" fill="url(#cShot3)"/>
+              <circle cx="290" cy="48" r="18" fill="#E2E8F0"/>
+              <!-- Campfire Glow -->
+              <circle cx="180" cy="148" r="56" fill="#F97316" fill-opacity="0.22"/>
+              <path d="M162 164L198 156M162 156L198 164" stroke="#78350F" stroke-width="6" stroke-linecap="round"/>
+              <path d="M180 116C194 134 196 150 180 158C164 150 166 134 180 116Z" fill="#F97316"/>
+              <path d="M180 130C188 140 188 152 180 156C172 152 172 140 180 130Z" fill="#FEF08A"/>
+              <text x="180" y="192" text-anchor="middle" fill="#FDE68A" font-family="Inter,sans-serif" font-size="11" font-weight="700">NIGHT 03 • KEEP THE FIRE ALIVE</text>
+            </svg>
+          `
+        }
+      ];
+    }
+
+    /**
+     * =========================================================================
+     * 6. PERSISTENCE & EXTERNAL apps.json LOADER
+     * =========================================================================
+     */
+    function loadPersistedState() {
+      try {
+        const savedPrereg = JSON.parse(localStorage.getItem(STORAGE_KEYS.PREREG) || '[]');
+        if (Array.isArray(savedPrereg)) {
+          state.preregistered = new Set(savedPrereg);
+        }
+      } catch (e) {
+        state.preregistered = new Set();
+      }
+
+      try {
+        const savedSim = JSON.parse(localStorage.getItem(STORAGE_KEYS.SIM_INSTALLED) || '{}');
+        if (savedSim && typeof savedSim === 'object') {
+          state.simInstalled = savedSim;
+        }
+      } catch (e) {
+        state.simInstalled = {};
+      }
+    }
+
+    function savePersistedState() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.PREREG, JSON.stringify([...state.preregistered]));
+        localStorage.setItem(STORAGE_KEYS.SIM_INSTALLED, JSON.stringify(state.simInstalled));
+      } catch (e) {
+        console.warn('Could not persist state to localStorage:', e);
+      }
+    }
+
+    /**
+     * Attempts to fetch an external './apps.json' if hosted alongside this file.
+     * Falls back seamlessly to STORE_CONFIG.defaultApps if unavailable.
+     */
+    async function loadExternalCatalog() {
+      if (!STORE_CONFIG.catalogUrl) return;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
+        const response = await fetch(STORE_CONFIG.catalogUrl, {
+          cache: 'no-store',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) return;
+        const data = await response.json();
+        const loadedApps = Array.isArray(data) ? data : (Array.isArray(data.apps) ? data.apps : null);
+
+        if (loadedApps && loadedApps.length > 0) {
+          state.apps = loadedApps;
+          if (data.storeName) {
+            STORE_CONFIG.storeName = data.storeName;
+            document.getElementById('storeBrandName').textContent = data.storeName;
+            document.title = `${data.storeName} — Indie App Store`;
+          }
+          renderAllViews();
+        }
+      } catch (err) {
+        // Expected in single-file / offline mode — built-in catalog is already active
+      }
+    }
+
+    /**
+     * =========================================================================
+     * 7. THEME MANAGEMENT (LIGHT DEFAULT + SMOOTH DARK MODE TOGGLE)
+     * =========================================================================
+     */
+    function initTheme() {
+      let savedTheme = 'light';
+      try {
+        savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
+      } catch (e) {}
+      applyTheme(savedTheme);
+    }
+
+    function applyTheme(mode) {
+      const isDark = mode === 'dark';
+      document.documentElement.classList.toggle('dark', isDark);
+      document.getElementById('iconMoon').classList.toggle('hidden', isDark);
+      document.getElementById('iconSun').classList.toggle('hidden', !isDark);
+      try {
+        localStorage.setItem(STORAGE_KEYS.THEME, mode);
+      } catch (e) {}
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      applyTheme(isDark ? 'light' : 'dark');
+    }
+
+    /**
+     * =========================================================================
+     * 8. ACTION HANDLERS (INSTALL, OPEN, PRE-REGISTER, SHARE)
+     * =========================================================================
+     */
+    function handlePrimaryAppAction(appId, event) {
+      if (event) event.stopPropagation();
+      const app = state.apps.find(a => a.id === appId);
+      if (!app) return;
+
+      // Coming Soon -> Toggle Pre-registration
+      if (app.status === 'coming_soon') {
+        if (state.preregistered.has(app.id)) {
+          state.preregistered.delete(app.id);
+          savePersistedState();
+          renderAllViews();
+          showToast(`Removed pre-registration for ${app.name}`);
+        } else {
+          state.preregistered.add(app.id);
+          savePersistedState();
+          renderAllViews();
+          showToast(`Pre-registered for ${app.name} ✓ We'll notify you on launch!`, 'success');
+        }
+        return;
+      }
+
+      // Active download/install -> Ignore or let cancel handle it
+      const task = state.installTasks[app.packageName];
+      if (task && (task.status === 'downloading' || task.status === 'installing')) {
+        return;
+      }
+
+      // Already installed? Check for update vs Open
+      if (NativeBridge.isInstalled(app.packageName)) {
+        if (NativeBridge.hasUpdateAvailable(app)) {
+          NativeBridge.installApp(app);
+        } else {
+          NativeBridge.openApp(app);
+        }
+        return;
+      }
+
+      // Fresh Install
+      NativeBridge.installApp(app);
+    }
+
+    function handleCancelAction(packageName, event) {
+      if (event) event.stopPropagation();
+      NativeBridge.cancelInstall(packageName);
+    }
+
+    /**
+     * Copies a shareable text link using execCommand('copy') for iFrame compatibility
+     */
+    function shareApp(app) {
+      const shareText = `Check out ${app.name} on ${STORE_CONFIG.storeName}! ${app.shortTagline || app.description}`;
+      try {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = shareText;
+        tempInput.setAttribute('readonly', '');
+        tempInput.style.position = 'fixed';
+        tempInput.style.opacity = '0';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast(`Copied share link for ${app.name}`, 'success');
+      } catch (err) {
+        showToast('Ready to share: ' + app.name);
+      }
+    }
+
+    /**
+     * =========================================================================
+     * 9. UI COMPONENTS & RENDERERS
+     * =========================================================================
+     */
+    function getButtonState(app) {
+      const task = state.installTasks[app.packageName];
+      if (task && task.status === 'downloading') {
+        return { type: 'downloading', label: `${task.progress}%`, fullLabel: `Downloading ${task.progress}%`, progress: task.progress };
+      }
+      if (task && task.status === 'installing') {
+        return { type: 'installing', label: 'Installing...', fullLabel: 'Installing...', progress: 100 };
+      }
+      if (app.status === 'coming_soon') {
+        const isReg = state.preregistered.has(app.id);
+        return {
+          type: isReg ? 'preregistered' : 'preregister',
+          label: isReg ? 'Pre-registered ✓' : 'Pre-register',
+          fullLabel: isReg ? 'Pre-registered ✓' : 'Pre-register'
+        };
+      }
+      if (NativeBridge.isInstalled(app.packageName)) {
+        if (NativeBridge.hasUpdateAvailable(app)) {
+          return { type: 'update', label: 'Update', fullLabel: `Update to v${app.version}` };
+        }
+        return { type: 'open', label: 'Open', fullLabel: 'Open' };
+      }
+      return { type: 'install', label: 'Install', fullLabel: `Install (${app.size})` };
+    }
+
+    /**
+     * Renders compact action pill button used on list cards
+     */
+    function renderCompactActionButton(app) {
+      const btn = getButtonState(app);
+
+      if (btn.type === 'downloading') {
+        return `
+          <div class="flex items-center gap-1.5" data-pkg-action="${app.packageName}">
+            <div class="relative overflow-hidden min-w-[78px] h-9 px-3 rounded-full bg-play-greenLight dark:bg-play-greenDarkBg text-play-green dark:text-play-greenDarkText text-xs font-bold flex items-center justify-center">
+              <div class="absolute inset-y-0 left-0 bg-play-green/20 dark:bg-play-greenDarkText/25 transition-all duration-200" style="width: ${btn.progress}%" data-pkg-bar="${app.packageName}"></div>
+              <span class="relative z-10" data-pkg-pct="${app.packageName}">${btn.progress}%</span>
+            </div>
+            <button onclick="handleCancelAction('${app.packageName}', event)" aria-label="Cancel download" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-play-darkCard text-slate-500 dark:text-slate-300 hover:text-rose-500 flex items-center justify-center transition-colors">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        `;
+      }
+
+      if (btn.type === 'installing') {
+        return `
+          <div class="relative overflow-hidden min-w-[92px] h-9 px-3 rounded-full bg-play-greenLight dark:bg-play-greenDarkBg text-play-green dark:text-play-greenDarkText text-xs font-bold flex items-center justify-center">
+            <div class="absolute inset-y-0 left-0 w-1/2 bg-play-green/20 animate-indeterminate"></div>
+            <span class="relative z-10">Installing...</span>
+          </div>
+        `;
+      }
+
+      if (btn.type === 'open') {
+        return `
+          <button onclick="handlePrimaryAppAction('${app.id}', event)" class="min-w-[82px] h-9 px-4 rounded-full bg-play-greenLight dark:bg-play-greenDarkBg hover:bg-emerald-200/70 dark:hover:bg-emerald-900/60 text-play-green dark:text-play-greenDarkText text-xs font-bold transition-all active:scale-95">
+            Open
+          </button>
+        `;
+      }
+
+      if (btn.type === 'preregistered') {
+        return `
+          <button onclick="handlePrimaryAppAction('${app.id}', event)" class="h-9 px-3.5 rounded-full border border-play-green/40 dark:border-play-greenDarkText/40 bg-play-greenLight/60 dark:bg-play-greenDarkBg/60 text-play-green dark:text-play-greenDarkText text-xs font-bold transition-all active:scale-95 whitespace-nowrap">
+            Pre-registered ✓
+          </button>
+        `;
+      }
+
+      if (btn.type === 'preregister') {
+        return `
+          <button onclick="handlePrimaryAppAction('${app.id}', event)" class="h-9 px-3.5 rounded-full border border-play-green text-play-green dark:text-play-greenDarkText dark:border-play-greenDarkText hover:bg-play-greenLight dark:hover:bg-play-greenDarkBg text-xs font-bold transition-all active:scale-95 whitespace-nowrap">
+            Pre-register
+          </button>
+        `;
+      }
+
+      // Install or Update
+      return `
+        <button onclick="handlePrimaryAppAction('${app.id}', event)" class="min-w-[82px] h-9 px-4 rounded-full bg-play-green hover:bg-play-greenHover text-white text-xs font-bold shadow-xs transition-all active:scale-95">
+          ${btn.label}
+        </button>
+      `;
+    }
+
+    /**
+     * Renders a Play Store-style horizontal app card row
+     */
+    function renderAppRowCard(app, index = null) {
+      const isLive = app.status === 'live';
+      const metaLine = isLive
+        ? `<span class="inline-flex items-center gap-0.5 font-semibold text-slate-700 dark:text-slate-300">${app.rating} <svg class="w-3 h-3 text-amber-500 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.173c.969 0 1.371 1.24.588 1.81l-3.377 2.454a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.377-2.454a1 1 0 00-1.176 0l-3.377 2.454c-.784.57-1.838-.196-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.173a1 1 0 00.95-.69l1.287-3.967z"/></svg></span>
+           <span class="mx-1.5 text-slate-300 dark:text-slate-600">•</span>
+           <span>${app.size}</span>
+           <span class="mx-1.5 text-slate-300 dark:text-slate-600">•</span>
+           <span>v${app.version}</span>`
+        : `<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-[10px] font-bold uppercase tracking-wide">Coming Soon</span>
+           <span class="mx-1.5 text-slate-300 dark:text-slate-600">•</span>
+           <span>${app.version}</span>`;
+
+      return `
+        <div
+          role="button"
+          tabindex="0"
+          onclick="openAppDetail('${app.id}')"
+          onkeydown="if(event.key==='Enter') openAppDetail('${app.id}')"
+          class="group flex items-center gap-3.5 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-play-darkSurface/80 active:bg-slate-100 dark:active:bg-play-darkCard transition-colors cursor-pointer border border-transparent hover:border-slate-200/70 dark:hover:border-play-darkBorder/60"
+        >
+          ${index !== null ? `<span class="w-4 text-center text-xs font-bold text-slate-400 dark:text-slate-500 shrink-0">${index + 1}</span>` : ''}
+          ${getAppIconSVG(app.id, 'w-14 h-14 sm:w-16 sm:h-16')}
+          <div class="flex-1 min-w-0">
+            <h3 class="text-[15px] font-bold text-slate-900 dark:text-white truncate group-hover:text-play-green dark:group-hover:text-play-greenDarkText transition-colors">${app.name}</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">${app.category} • ${app.subCategory}</p>
+            <div class="flex items-center text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              ${metaLine}
+            </div>
+          </div>
+          <div class="shrink-0">
+            ${renderCompactActionButton(app)}
+          </div>
+        </div>
+      `;
+    }
+
+    /**
+     * Renders the Featured Spotlight Banner Carousel (GTA Arcade + Castaway Coming Soon)
+     */
+    function renderFeaturedSpotlight() {
+      const featuredApps = state.apps.filter(a => a.featured);
+      if (featuredApps.length === 0) return '';
+
+      const slidesHTML = featuredApps.map((app) => {
+        const isComing = app.status === 'coming_soon';
+        const badgeText = isComing ? 'COMING SOON • SURVIVAL' : 'OUT NOW • FEATURED ACTION';
+        const btn = getButtonState(app);
+
+        return `
+          <div
+            onclick="openAppDetail('${app.id}')"
+            class="snap-center shrink-0 w-[92%] sm:w-[86%] rounded-3xl overflow-hidden bg-gradient-to-br ${app.accentGradient} text-white shadow-md cursor-pointer relative group"
+          >
+            <!-- Subtle decorative grid overlay -->
+            <div class="absolute inset-0 opacity-15 pointer-events-none" style="background-image: radial-gradient(circle at 80% 20%, white 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <div class="p-5 flex flex-col justify-between min-h-[188px] relative z-10">
+              <div class="flex items-start justify-between gap-3">
+                <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-sm border border-white/15">
+                  <span class="w-1.5 h-1.5 rounded-full ${isComing ? 'bg-amber-300' : 'bg-emerald-300'}"></span>
+                  ${badgeText}
+                </span>
+                ${isComing ? `<span class="text-[11px] font-semibold text-white/85 bg-white/15 px-2.5 py-0.5 rounded-full">Beta</span>` : `<span class="text-[11px] font-bold text-amber-200 bg-black/25 px-2 py-0.5 rounded-full">★ ${app.rating}</span>`}
+              </div>
+
+              <div class="mt-4">
+                <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight">${app.name}</h2>
+                <p class="text-xs sm:text-sm text-white/85 mt-1 line-clamp-2 max-w-md">${app.shortTagline || app.description}</p>
+              </div>
+
+              <div class="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-white/15">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  ${getAppIconSVG(app.id, 'w-10 h-10 ring-2 ring-white/25')}
+                  <div class="min-w-0">
+                    <div class="text-xs font-bold truncate">${app.developer}</div>
+                    <div class="text-[11px] text-white/75">${isComing ? 'Tap to preview' : `${app.size} • Clean Install`}</div>
+                  </div>
+                </div>
+                <button
+                  onclick="handlePrimaryAppAction('${app.id}', event)"
+                  class="shrink-0 h-9 px-4 rounded-full bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold shadow-sm transition-transform active:scale-95"
+                >
+                  ${btn.type === 'downloading' ? btn.label : btn.label}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <section aria-label="Featured Spotlight">
+          <div class="flex items-center justify-between mb-2.5 px-1">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white tracking-tight">Featured Spotlight</h2>
+            <span class="text-xs font-medium text-slate-400 dark:text-slate-500">Swipe →</span>
+          </div>
+          <div class="flex gap-3 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-1 -mx-1 px-1">
+            ${slidesHTML}
+          </div>
+        </section>
+      `;
+    }
+
+    /**
+     * Renders Category Filter Pills
+     */
+    function renderCategoryPills() {
+      const bar = document.getElementById('categoryFilterBar');
+      if (state.activeTab !== 'store') {
+        bar.classList.add('hidden');
+        return;
+      }
+      bar.classList.remove('hidden');
+
+      const categories = ['For You', 'Games', 'Tools', 'Coming Soon'];
+      bar.innerHTML = categories.map(cat => {
+        const isActive = state.activeCategory === cat;
+        return `
+          <button
+            onclick="setCategory('${cat}')"
+            class="shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 ${
+              isActive
+                ? 'bg-play-greenLight dark:bg-play-greenDarkBg text-play-green dark:text-play-greenDarkText ring-1 ring-play-green/30 dark:ring-play-greenDarkText/30'
+                : 'bg-slate-100 dark:bg-play-darkSurface text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-play-darkCard'
+            }"
+          >
+            ${cat}
+          </button>
+        `;
+      }).join('');
+    }
+
+    /**
+     * Renders Bottom Navigation Bar active indicator & My Apps badge
+     */
+    function renderBottomNav() {
+      const installedCount = state.apps.filter(a => a.status === 'live' && NativeBridge.isInstalled(a.packageName)).length;
+      const totalMyApps = installedCount + state.preregistered.size;
+      const dot = document.getElementById('myAppsCountDot');
+
+      if (totalMyApps > 0) {
+        dot.textContent = totalMyApps;
+        dot.classList.remove('hidden');
+      } else {
+        dot.classList.add('hidden');
+      }
+
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        const isActive = btn.dataset.tab === state.activeTab;
+        const pill = btn.querySelector('.nav-pill');
+        if (isActive) {
+          btn.classList.add('text-play-green', 'dark:text-play-greenDarkText');
+          btn.classList.remove('text-slate-500', 'dark:text-slate-400');
+          pill.classList.add('bg-play-greenLight', 'dark:bg-play-greenDarkBg');
+        } else {
+          btn.classList.remove('text-play-green', 'dark:text-play-greenDarkText');
+          btn.classList.add('text-slate-500', 'dark:text-slate-400');
+          pill.classList.remove('bg-play-greenLight', 'dark:bg-play-greenDarkBg');
+        }
+      });
+    }
+
+    /**
+     * Renders Main Store / Games / My Apps Content
+     */
+    function renderMainContent() {
+      const main = document.getElementById('mainContent');
+      const query = state.searchQuery.trim().toLowerCase();
+
+      // 1. LIVE SEARCH RESULTS OVERLAY (Overrides current tab seamlessly)
+      if (query.length > 0) {
+        const matches = state.apps.filter(app =>
+          app.name.toLowerCase().includes(query) ||
+          app.category.toLowerCase().includes(query) ||
+          app.subCategory.toLowerCase().includes(query) ||
+          app.description.toLowerCase().includes(query) ||
+          (app.tags && app.tags.some(t => t.toLowerCase().includes(query)))
+        );
+
+        main.innerHTML = `
+          <section class="space-y-2 animate-fade-in">
+            <div class="flex items-center justify-between px-1">
+              <h2 class="text-sm font-bold text-slate-700 dark:text-slate-200">
+                Search results for "${escapeHTML(state.searchQuery)}" (${matches.length})
+              </h2>
+            </div>
+            ${matches.length > 0
+              ? `<div class="divide-y divide-slate-100 dark:divide-play-darkBorder/50">${matches.map(a => renderAppRowCard(a)).join('')}</div>`
+              : `
+                <div class="text-center py-14 px-6 rounded-3xl bg-slate-50 dark:bg-play-darkSurface border border-slate-100 dark:border-play-darkBorder">
+                  <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-200/70 dark:bg-play-darkCard flex items-center justify-center text-slate-400 mb-3">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  </div>
+                  <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">No apps found</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Try searching for "GTA", "NumeraFlow", "Castaway", or "Games".</p>
+                </div>
+              `
+            }
+          </section>
+        `;
+        return;
+      }
+
+      // 2. TAB: MY APPS
+      if (state.activeTab === 'myapps') {
+        const installedApps = state.apps.filter(a => a.status === 'live' && NativeBridge.isInstalled(a.packageName));
+        const preregApps = state.apps.filter(a => a.status === 'coming_soon' && state.preregistered.has(a.id));
+
+        main.innerHTML = `
+          <div class="space-y-6 animate-fade-in">
+            <!-- Header Summary Card -->
+            <div class="p-4 rounded-3xl bg-slate-50 dark:bg-play-darkSurface border border-slate-200/70 dark:border-play-darkBorder flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-play-greenLight dark:bg-play-greenDarkBg text-play-green dark:text-play-greenDarkText flex items-center justify-center shrink-0">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="M9 12l2 2 4-4"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="text-sm font-bold text-slate-900 dark:text-white">My Apps & Library</h2>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">${installedApps.length} installed • ${preregApps.length} pre-registered</p>
+                </div>
+              </div>
+              ${!state.isNativeBridge && installedApps.length > 0 ? `
+                <button onclick="resetSimulatedInstalls()" class="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-white dark:bg-play-darkCard border border-slate-200 dark:border-play-darkBorder text-slate-600 dark:text-slate-300 hover:text-rose-600 transition-colors">
+                  Reset Preview
+                </button>
+              ` : ''}
+            </div>
+
+            <!-- Installed Section -->
+            <section class="space-y-2">
+              <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 px-1">Installed on this device</h3>
+              ${installedApps.length > 0
+                ? `<div class="space-y-1">${installedApps.map(a => renderAppRowCard(a)).join('')}</div>`
+                : `
+                  <div class="p-6 rounded-3xl border border-dashed border-slate-200 dark:border-play-darkBorder text-center">
+                    <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">No apps installed yet</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Install GTA Arcade or NumeraFlow from the Store to see them here.</p>
+                    <button onclick="switchTab('store')" class="mt-3 px-4 py-2 rounded-full bg-play-green text-white text-xs font-bold hover:bg-play-greenHover transition-colors">Browse Store</button>
+                  </div>
+                `
+              }
+            </section>
+
+            <!-- Pre-registered Section -->
+            <section class="space-y-2">
+              <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 px-1">Pre-registered</h3>
+              ${preregApps.length > 0
+                ? `<div class="space-y-1">${preregApps.map(a => renderAppRowCard(a)).join('')}</div>`
+                : `
+                  <div class="p-5 rounded-3xl bg-slate-50/70 dark:bg-play-darkSurface/60 border border-slate-100 dark:border-play-darkBorder text-center">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">You haven't pre-registered for upcoming titles yet. Check out <button onclick="openAppDetail('castaway-island')" class="text-play-green dark:text-play-greenDarkText font-bold hover:underline">Castaway: Island Escape</button>!</p>
+                  </div>
+                `
+              }
+            </section>
+          </div>
+        `;
+        return;
+      }
+
+      // 3. TAB: GAMES
+      if (state.activeTab === 'games') {
+        const games = state.apps.filter(a => a.category === 'Games');
+        const liveGames = games.filter(a => a.status === 'live');
+        const upcomingGames = games.filter(a => a.status === 'coming_soon');
+
+        main.innerHTML = `
+          <div class="space-y-6 animate-fade-in">
+            ${renderFeaturedSpotlight()}
+
+            <section class="space-y-2">
+              <div class="flex items-center justify-between px-1">
+                <h2 class="text-base font-bold text-slate-900 dark:text-white">Available Games</h2>
+                <span class="text-xs font-semibold text-play-green dark:text-play-greenDarkText">${liveGames.length} Live</span>
+              </div>
+              <div class="space-y-1">
+                ${liveGames.map((a, idx) => renderAppRowCard(a, idx)).join('')}
+              </div>
+            </section>
+
+            ${upcomingGames.length > 0 ? `
+              <section class="space-y-2">
+                <div class="flex items-center justify-between px-1">
+                  <h2 class="text-base font-bold text-slate-900 dark:text-white">Upcoming Releases</h2>
+                  <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">Pre-register</span>
+                </div>
+                <div class="space-y-1">
+                  ${upcomingGames.map(a => renderAppRowCard(a)).join('')}
+                </div>
+              </section>
+            ` : ''}
+          </div>
+        `;
+        return;
+      }
+
+      // 4. TAB: STORE (HOME)
+      let filtered = [...state.apps];
+      if (state.activeCategory === 'Games') {
+        filtered = state.apps.filter(a => a.category === 'Games');
+      } else if (state.activeCategory === 'Tools') {
+        filtered = state.apps.filter(a => a.category === 'Tools');
+      } else if (state.activeCategory === 'Coming Soon') {
+        filtered = state.apps.filter(a => a.status === 'coming_soon');
+      }
+
+      const liveList = filtered.filter(a => a.status === 'live');
+      const comingSoonList = filtered.filter(a => a.status === 'coming_soon');
+
+      main.innerHTML = `
+        <div class="space-y-6 animate-fade-in">
+          ${state.activeCategory === 'For You' ? renderFeaturedSpotlight() : ''}
+
+          ${liveList.length > 0 ? `
+            <section class="space-y-2">
+              <div class="flex items-center justify-between px-1">
+                <h2 class="text-base font-bold text-slate-900 dark:text-white tracking-tight">
+                  ${state.activeCategory === 'For You' ? 'Made by ' + STORE_CONFIG.developerName : state.activeCategory}
+                </h2>
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">${liveList.length} ${liveList.length === 1 ? 'app' : 'apps'}</span>
+              </div>
+              <div class="space-y-1">
+                ${liveList.map((a, idx) => renderAppRowCard(a, state.activeCategory === 'For You' ? idx : null)).join('')}
+              </div>
+            </section>
+          ` : ''}
+
+          ${comingSoonList.length > 0 ? `
+            <section class="space-y-2">
+              <div class="flex items-center justify-between px-1">
+                <h2 class="text-base font-bold text-slate-900 dark:text-white tracking-tight">Coming Soon</h2>
+                <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">Early Access</span>
+              </div>
+              <div class="p-1.5 rounded-3xl bg-gradient-to-br from-amber-50/80 to-orange-50/50 dark:from-play-darkSurface dark:to-play-darkCard border border-amber-200/60 dark:border-play-darkBorder">
+                ${comingSoonList.map(a => renderAppRowCard(a)).join('')}
+              </div>
+            </section>
+          ` : ''}
+
+          <!-- Direct Clean Install Guarantee Banner -->
+          <section class="p-4 rounded-3xl bg-slate-50 dark:bg-play-darkSurface border border-slate-200/70 dark:border-play-darkBorder flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-2xl bg-play-greenLight dark:bg-play-greenDarkBg text-play-green dark:text-play-greenDarkText flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white">Direct Clean Install — Zero APK Clutter</h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">
+                Apps stream directly through Android's native PackageInstaller session inside the PlayHub app—no messy <code class="font-mono text-[10px] bg-slate-200/70 dark:bg-play-darkCard px-1 py-0.5 rounded">.apk</code> files left in your Downloads folder.
+              </p>
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+    /**
+     * =========================================================================
+     * 10. FULL PLAY STORE APP DETAIL SHEET
+     * =========================================================================
+     */
+    function openAppDetail(appId) {
+      const app = state.apps.find(a => a.id === appId);
+      if (!app) return;
+
+      state.selectedAppId = appId;
+      const overlay = document.getElementById('detailOverlay');
+      overlay.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      renderAppDetailBody(app);
+
+      // Reset scroll & top title visibility
+      const bodyEl = document.getElementById('detailBody');
+      bodyEl.scrollTop = 0;
+      document.getElementById('detailTopTitle').textContent = app.name;
+      document.getElementById('detailTopTitle').classList.add('opacity-0');
+    }
+
+    function closeAppDetail() {
+      state.selectedAppId = null;
+      document.getElementById('detailOverlay').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function renderAppDetailBody(app) {
+      const bodyEl = document.getElementById('detailBody');
+      const btn = getButtonState(app);
+      const screenshots = getAppScreenshots(app.id);
+      const isLive = app.status === 'live';
+      const isDownloadingOrInstalling = btn.type === 'downloading' || btn.type === 'installing';
+      const isInstalled = isLive && NativeBridge.isInstalled(app.packageName);
+
+      // Circular ring stroke math for icon overlay during download
+      const radius = 38;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - ((btn.progress || 0) / 100) * circumference;
+
+      // Full-width Primary Action Button
+      let primaryActionHTML = '';
+      if (btn.type === 'downloading') {
+        primaryActionHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="relative flex-1 h-12 rounded-full bg-play-greenLight dark:bg-play-greenDarkBg overflow-hidden flex items-center justify-center border border-play-green/20">
+              <div class="absolute inset-y-0 left-0 bg-play-green/25 dark:bg-play-greenDarkText/30 transition-all duration-200" style="width: ${btn.progress}%" data-detail-bar="${app.packageName}"></div>
+              <span class="relative z-10 text-sm font-bold text-play-green dark:text-play-greenDarkText" data-detail-pct="${app.packageName}">Downloading ${btn.progress}%</span>
+            </div>
+            <button onclick="handleCancelAction('${app.packageName}', event)" class="h-12 px-5 rounded-full border border-slate-300 dark:border-play-darkBorder text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-play-darkSurface text-sm font-semibold transition-colors active:scale-95">
+              Cancel
+            </button>
+          </div>
+        `;
+      } else if (btn.type === 'installing') {
+        primaryActionHTML = `
+          <div class="relative w-full h-12 rounded-full bg-play-greenLight dark:bg-play-greenDarkBg overflow-hidden flex items-center justify-center">
+            <div class="absolute inset-y-0 left-0 w-1/2 bg-play-green/25 animate-indeterminate"></div>
+            <span class="relative z-10 text-sm font-bold text-play-green dark:text-play-greenDarkText">Installing via PackageInstaller...</span>
+          </div>
+        `;
+      } else if (btn.type === 'open') {
+        primaryActionHTML = `
+          <div class="flex items-center gap-2.5">
+            ${!state.isNativeBridge ? `
+              <button onclick="NativeBridge.uninstallSimulated('${app.packageName}', '${escapeJS(app.name)}')" class="flex-1 h-12 rounded-full border border-slate-300 dark:border-play-darkBorder text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-play-darkSurface text-sm font-semibold transition-colors active:scale-95">
+                Uninstall
+              </button>
+            ` : ''}
+            <button onclick="handlePrimaryAppAction('${app.id}', event)" class="flex-1 h-12 rounded-full bg-play-green hover:bg-play-greenHover text-white text-sm font-bold shadow-sm transition-all active:scale-[0.98]">
+              Open
+            </button>
+          </div>
+        `;
+      } else if (btn.type === 'preregistered') {
+        primaryActionHTML = `
+          <button onclick="handlePrimaryAppAction('${app.id}', event)" class="w-full h-12 rounded-full border-2 border-play-green dark:border-play-greenDarkText bg-play-greenLight/60 dark:bg-play-greenDarkBg/60 text-play-green dark:text-play-greenDarkText text-sm font-bold transition-all active:scale-[0.98]">
+            Pre-registered ✓  (Tap to cancel)
+          </button>
+        `;
+      } else if (btn.type === 'preregister') {
+        primaryActionHTML = `
+          <button onclick="handlePrimaryAppAction('${app.id}', event)" class="w-full h-12 rounded-full bg-play-green hover:bg-play-greenHover text-white text-sm font-bold shadow-sm transition-all active:scale-[0.98]">
+            Pre-register
+          </button>
+        `;
+      } else {
+        primaryActionHTML = `
+          <button onclick="handlePrimaryAppAction('${app.id}', event)" class="w-full h-12 rounded-full bg-play-green hover:bg-play-greenHover text-white text-sm font-bold shadow-sm transition-all active:scale-[0.98]">
+            ${btn.fullLabel}
+          </button>
+        `;
+      }
+
+      bodyEl.innerHTML = `
+        <!-- Hero App Identity Row -->
+        <div class="flex items-start gap-4">
+          <div class="relative shrink-0 w-20 h-20 flex items-center justify-center">
+            ${getAppIconSVG(app.id, isDownloadingOrInstalling ? 'w-14 h-14 transition-all duration-300' : 'w-20 h-20 transition-all duration-300')}
+            ${isDownloadingOrInstalling ? `
+              <svg class="absolute inset-0 w-20 h-20 pointer-events-none" viewBox="0 0 84 84">
+                <circle cx="42" cy="42" r="${radius}" stroke="currentColor" stroke-width="3.5" fill="none" class="text-slate-200 dark:text-play-darkCard"/>
+                <circle cx="42" cy="42" r="${radius}" stroke="#01875F" stroke-width="3.5" stroke-linecap="round" fill="none"
+                  class="progress-ring-circle"
+                  stroke-dasharray="${circumference}"
+                  stroke-dashoffset="${offset}"
+                  data-detail-ring="${app.packageName}"
+                />
+              </svg>
+            ` : ''}
+          </div>
+
+          <div class="flex-1 min-w-0 pt-0.5">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight">${app.name}</h1>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="text-sm font-semibold text-play-green dark:text-play-greenDarkText">${app.developer}</span>
+              <svg class="w-4 h-4 text-play-green dark:text-play-greenDarkText shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-label="Verified Developer">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+              </svg>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${app.category} • ${app.subCategory}${isInstalled ? ' • Installed' : ''}</p>
+          </div>
+        </div>
+
+        <!-- Play Store Metadata Strip -->
+        <div class="grid grid-cols-3 divide-x divide-slate-200 dark:divide-play-darkBorder py-2 text-center">
+          <div class="px-2">
+            <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center justify-center gap-1">
+              ${isLive ? `${app.rating} <svg class="w-3.5 h-3.5 text-amber-500 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.173c.969 0 1.371 1.24.588 1.81l-3.377 2.454a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.377-2.454a1 1 0 00-1.176 0l-3.377 2.454c-.784.57-1.838-.196-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.173a1 1 0 00.95-.69l1.287-3.967z"/></svg>` : 'Soon'}
+            </div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${isLive ? `${app.ratingCount} ratings` : 'Early Access'}</div>
+          </div>
+
+          <div class="px-2">
+            <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              ${app.size}
+            </div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Download size</div>
+          </div>
+
+          <div class="px-2">
+            <div class="text-sm font-bold text-slate-900 dark:text-white">v${app.version}</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${app.ageRating || 'Everyone'}</div>
+          </div>
+        </div>
+
+        <!-- Full-width Primary Button -->
+        <div class="space-y-3">
+          ${primaryActionHTML}
+
+          <!-- Direct Clean Install Info Badge -->
+          <div class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl bg-play-greenLight/70 dark:bg-play-greenDarkBg/60 border border-play-green/15 dark:border-play-greenDarkText/15">
+            <svg class="w-4 h-4 text-play-green dark:text-play-greenDarkText shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+            <span class="text-xs font-medium text-emerald-950 dark:text-emerald-200">
+              <strong class="font-bold">Direct Clean Install (No APK clutter)</strong> — streams straight to Android without saving APK files in storage.
+            </span>
+          </div>
+        </div>
+
+        <!-- Horizontal Scrollable Screenshots Gallery -->
+        <section class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Preview</h2>
+            <span class="text-[11px] text-slate-400">Tap to zoom</span>
+          </div>
+          <div class="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+            ${screenshots.map((shot, idx) => `
+              <button
+                type="button"
+                onclick="openLightbox('${app.id}', ${idx})"
+                class="shrink-0 w-72 sm:w-80 aspect-[16/9.5] rounded-2xl overflow-hidden border border-slate-200 dark:border-play-darkBorder shadow-card bg-slate-900 hover:opacity-95 transition-opacity focus:outline-none focus:ring-2 focus:ring-play-green"
+              >
+                ${shot.svg}
+              </button>
+            `).join('')}
+          </div>
+        </section>
+
+        <!-- About This App -->
+        <section class="space-y-2.5">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">About this ${app.category === 'Games' ? 'game' : 'app'}</h2>
+          <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${app.description}</p>
+          ${app.tags && app.tags.length > 0 ? `
+            <div class="flex flex-wrap gap-2 pt-1">
+              ${app.tags.map(tag => `
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-play-darkSurface text-slate-700 dark:text-slate-300 border border-slate-200/70 dark:border-play-darkBorder">
+                  ${tag}
+                </span>
+              `).join('')}
+            </div>
+          ` : ''}
+        </section>
+
+        <!-- What's New -->
+        <section class="p-4 rounded-2xl bg-slate-50 dark:bg-play-darkSurface border border-slate-200/70 dark:border-play-darkBorder space-y-1.5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white">What's new</h2>
+            <span class="text-[11px] font-semibold text-play-green dark:text-play-greenDarkText">v${app.version}</span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${app.whatsNew}</p>
+        </section>
+
+        <!-- App Info Metadata -->
+        <section class="space-y-2 pt-1">
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white">App info</h2>
+          <div class="rounded-2xl border border-slate-200/70 dark:border-play-darkBorder divide-y divide-slate-100 dark:divide-play-darkBorder/60 text-xs">
+            <div class="flex justify-between px-4 py-2.5">
+              <span class="text-slate-500 dark:text-slate-400">Package ID</span>
+              <span class="font-mono font-medium text-slate-800 dark:text-slate-200">${app.packageName}</span>
+            </div>
+            <div class="flex justify-between px-4 py-2.5">
+              <span class="text-slate-500 dark:text-slate-400">Version</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-200">${app.version}</span>
+            </div>
+            <div class="flex justify-between px-4 py-2.5">
+              <span class="text-slate-500 dark:text-slate-400">Download Size</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-200">${app.size}</span>
+            </div>
+            <div class="flex justify-between px-4 py-2.5">
+              <span class="text-slate-500 dark:text-slate-400">Installer Mode</span>
+              <span class="font-semibold text-play-green dark:text-play-greenDarkText">${state.isNativeBridge ? 'Android PackageInstaller' : 'Browser Preview'}</span>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    /**
+     * Fast DOM patch for smooth 0-100% progress bars without flickering whole views
+     */
+    function updateLiveInstallUI(packageName) {
+      const task = state.installTasks[packageName];
+      if (!task) return;
+      const pct = task.progress;
+
+      // Patch compact card progress bars
+      document.querySelectorAll(`[data-pkg-bar="${packageName}"]`).forEach(el => {
+        el.style.width = `${pct}%`;
+      });
+      document.querySelectorAll(`[data-pkg-pct="${packageName}"]`).forEach(el => {
+        el.textContent = `${pct}%`;
+      });
+
+      // Patch detail sheet progress bar & circular icon ring
+      document.querySelectorAll(`[data-detail-bar="${packageName}"]`).forEach(el => {
+        el.style.width = `${pct}%`;
+      });
+      document.querySelectorAll(`[data-detail-pct="${packageName}"]`).forEach(el => {
+        el.textContent = `Downloading ${pct}%`;
+      });
+      document.querySelectorAll(`[data-detail-ring="${packageName}"]`).forEach(circle => {
+        const radius = 38;
+        const circumference = 2 * Math.PI * radius;
+        circle.style.strokeDashoffset = circumference - (pct / 100) * circumference;
+      });
+    }
+
+    /**
+     * =========================================================================
+     * 11. MODALS, LIGHTBOX & TOAST NOTIFICATIONS
+     * =========================================================================
+     */
+    function openLightbox(appId, shotIndex) {
+      const shots = getAppScreenshots(appId);
+      const shot = shots[shotIndex];
+      if (!shot) return;
+
+      document.getElementById('lightboxContent').innerHTML = shot.svg;
+      document.getElementById('lightboxCaption').textContent = shot.caption;
+      document.getElementById('lightboxModal').classList.remove('hidden');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightboxModal').classList.add('hidden');
+    }
+
+    function showPreviewModeInfo() {
+      const modal = document.getElementById('infoModal');
+      document.getElementById('infoModalTitle').textContent = 'Browser Preview Mode';
+      document.getElementById('infoModalBody').innerHTML = `
+        <p>You're previewing <strong>${STORE_CONFIG.storeName}</strong> in a web browser, so tapping <strong>Install</strong> simulates the 0% → 100% streaming download and install flow.</p>
+        <p>When loaded inside your Android WebView wrapper with <code class="font-mono text-xs bg-slate-100 dark:bg-play-darkCard px-1.5 py-0.5 rounded">window.StoreBridge</code>, this badge disappears automatically and apps install natively with zero APK clutter.</p>
+      `;
+      const secBtn = document.getElementById('infoModalSecondaryBtn');
+      secBtn.classList.add('hidden');
+      modal.classList.remove('hidden');
+    }
+
+    function resetSimulatedInstalls() {
+      state.simInstalled = {};
+      savePersistedState();
+      renderAllViews();
+      showToast('Simulated installed apps cleared');
+    }
+
+    function showToast(message, variant = 'default') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+
+      const bgClass = variant === 'success'
+        ? 'bg-slate-900 dark:bg-emerald-950 text-white border border-emerald-500/40'
+        : variant === 'error'
+          ? 'bg-rose-900 text-white border border-rose-500/40'
+          : 'bg-slate-900 dark:bg-slate-800 text-white border border-slate-700';
+
+      toast.className = `pointer-events-auto px-4 py-2.5 rounded-2xl shadow-lg text-xs sm:text-sm font-medium flex items-center gap-2 animate-slide-up ${bgClass}`;
+      toast.innerHTML = `
+        ${variant === 'success' ? `<svg class="w-4 h-4 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+        <span>${escapeHTML(message)}</span>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 2800);
+    }
+
+    /**
+     * =========================================================================
+     * 12. NAVIGATION, HELPERS & BOOTSTRAP
+     * =========================================================================
+     */
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      state.searchQuery = '';
+      document.getElementById('searchInput').value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      renderAllViews();
+    }
+
+    function setCategory(category) {
+      state.activeCategory = category;
+      renderAllViews();
+    }
+
+    function renderAllViews() {
+      renderCategoryPills();
+      renderMainContent();
+      renderBottomNav();
+
+      if (state.selectedAppId) {
+        const app = state.apps.find(a => a.id === state.selectedAppId);
+        if (app) renderAppDetailBody(app);
+      }
+    }
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escapeJS(str) {
+      return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    // Initialize App on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Detect native Android WebView bridge vs browser preview
+      state.isNativeBridge = NativeBridge.detect();
+      const previewBadge = document.getElementById('previewModeBadge');
+      if (!state.isNativeBridge) {
+        previewBadge.classList.remove('hidden');
+        previewBadge.classList.add('inline-flex');
+      }
+
+      // 2. Apply store brand name & saved state
+      document.getElementById('storeBrandName').textContent = STORE_CONFIG.storeName;
+      document.title = `${STORE_CONFIG.storeName} — Indie App Store`;
+      initTheme();
+      loadPersistedState();
+
+      // 3. Initial Render + try loading external apps.json
+      renderAllViews();
+      loadExternalCatalog();
+
+      // 4. Bind UI Events
+      document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+      document.getElementById('previewModeBadge').addEventListener('click', showPreviewModeInfo);
+      document.getElementById('brandHomeBtn').addEventListener('click', () => switchTab('store'));
+
+      // Live Search
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+      searchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        clearSearchBtn.classList.toggle('hidden', state.searchQuery.length === 0);
+        renderMainContent();
+      });
+      clearSearchBtn.addEventListener('click', () => {
+        state.searchQuery = '';
+        searchInput.value = '';
+        clearSearchBtn.classList.add('hidden');
+        searchInput.focus();
+        renderMainContent();
+      });
+
+      // Bottom Nav Tabs
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      // Detail Sheet Controls
+      document.getElementById('closeDetailBtn').addEventListener('click', closeAppDetail);
+      document.getElementById('detailOverlay').addEventListener('click', (e) => {
+        if (e.target.id === 'detailOverlay') closeAppDetail();
+      });
+      document.getElementById('shareDetailBtn').addEventListener('click', () => {
+        const app = state.apps.find(a => a.id === state.selectedAppId);
+        if (app) shareApp(app);
+      });
+      document.getElementById('detailBody').addEventListener('scroll', (e) => {
+        const titleEl = document.getElementById('detailTopTitle');
+        if (e.target.scrollTop > 70) {
+          titleEl.classList.remove('opacity-0');
+        } else {
+          titleEl.classList.add('opacity-0');
+        }
+      });
+
+      // Lightbox & Info Modal Close
+      document.getElementById('closeLightboxBtn').addEventListener('click', closeLightbox);
+      document.getElementById('lightboxModal').addEventListener('click', (e) => {
+        if (e.target.id === 'lightboxModal') closeLightbox();
+      });
+      document.getElementById('infoModalCloseBtn').addEventListener('click', () => {
+        document.getElementById('infoModal').classList.add('hidden');
+      });
+      document.getElementById('infoModal').addEventListener('click', (e) => {
+        if (e.target.id === 'infoModal') {
+          document.getElementById('infoModal').classList.add('hidden');
+        }
+      });
+
+      // Escape Key Support
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (!document.getElementById('lightboxModal').classList.contains('hidden')) {
+            closeLightbox();
+          } else if (!document.getElementById('infoModal').classList.contains('hidden')) {
+            document.getElementById('infoModal').classList.add('hidden');
+          } else if (state.selectedAppId) {
+            closeAppDetail();
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
