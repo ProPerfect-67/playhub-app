@@ -1,0 +1,57 @@
+const APPS = [
+  {
+    id: "gta-arcade",
+    name: "GTA Arcade: Remastered",
+    dev: "ProPerfect",
+    cat: "Games",
+    tag: "Level-based missions, garage upgrades & day/night cycle",
+    ver: "1.0.4",
+    vCode: 1,
+    rate: "4.9",
+    soon: false,
+    pkg: "com.gtarem.app",
+    url: "https://github.com/ProPerfect-67/playhub-app/releases/download/v1.0/GTA.Arcade.Remastered_1.0.4.apk",
+    desc: "Fast-paced city missions with cash rewards, garage shop upgrades, and a dynamic day/night cycle.",
+    news: "v1.0.4: Smoother mobile controls, garage upgrades, and performance boosts.",
+    bg: "linear-gradient(135deg,#ff416c,#3a1c71)",
+    t1: "GTA",
+    t2: "ARCADE"
+  },
+  {
+    id: "numeraflow",
+    name: "NumeraFlow",
+    dev: "ProPerfect",
+    cat: "Tools",
+    tag: "Mental math speed drills & analytics dashboard",
+    ver: "1.0.2",
+    vCode: 1,
+    rate: "4.8",
+    soon: false,
+    pkg: "com.numera.app",
+    url: "https://github.com/ProPerfect-67/playhub-app/releases/download/v1.0/NumeraFlow_1.0.2.apk",
+    desc: "Sharpen calculation speed with timed mental math drills, accuracy tracking, and daily practice stats.",
+    news: "v1.0.2: Faster drill generator and Android app polish.",
+    bg: "linear-gradient(135deg,#00b4db,#004e92)",
+    t1: "NF",
+    t2: "MATH"
+  },
+  {
+    id: "castaway",
+    name: "Castaway: Island Escape",
+    dev: "ProPerfect",
+    cat: "Games",
+    tag: "3D first-person island survival & boat escape",
+    ver: "Soon",
+    vCode: 1,
+    rate: "Soon",
+    soon: true,
+    pkg: "com.castaway.app",
+    url: "",
+    desc: "Survive a 3D island, gather resources, and repair your motor boat to escape. Pre-register for launch!",
+    news: "In final development. Coming soon to PlayHub!",
+    bg: "linear-gradient(135deg,#11998e,#0f3443)",
+    t1: "3D",
+    t2: "ISLAND"
+  }
+];
+
