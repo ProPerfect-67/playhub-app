@@ -37,21 +37,20 @@ const APPS = [
   },
   {
     id: "castaway",
-    name: "Castaway: Island Escape",
+    name: "Castaway 3D (Beta)",
     dev: "ProPerfect",
     cat: "Games",
-    tag: "3D first-person island survival & boat escape",
-    ver: "Soon",
+    tag: "Early Beta — 3D island survival & motor boat escape",
+    ver: "1.0.5-beta",
     vCode: 1,
-    rate: "Soon",
-    soon: true,
-    pkg: "com.castaway.app",
-    url: "",
-    desc: "Survive a 3D island, gather resources, and repair your motor boat to escape. Pre-register for launch!",
-    news: "In final development. Coming soon to PlayHub!",
+    rate: "Beta",
+    soon: false,
+    pkg: "com.webapp.castaway3d.gbae",
+    url: "https://github.com/ProPerfect-67/playhub-app/releases/download/v1.1-beta/Castaway.3D_1.0.5.apk",
+    desc: "Early Beta! Survive a 3D island, gather resources, and repair your motor boat to escape. Expect minor bugs while fine-tuning continues.",
+    news: "v1.0.5 Beta: First playable test release on PlayHub!",
     bg: "linear-gradient(135deg,#11998e,#0f3443)",
     t1: "3D",
-    t2: "ISLAND"
+    t2: "BETA"
   }
 ];
-
