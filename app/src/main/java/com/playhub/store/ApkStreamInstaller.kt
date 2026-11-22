@@ -40,13 +40,15 @@ class ApkStreamInstaller(
                 onStatus(packageName, "downloading", "Connecting...")
                 onProgress(packageName, 0)
 
-                connection = openConnectionWithRedirects(downloadUrl)
-                val responseCode = connection.responseCode
+                val activeConnection = openConnectionWithRedirects(downloadUrl)
+                connection = activeConnection
+
+                val responseCode = activeConnection.responseCode
                 if (responseCode !in 200..299) {
                     throw IOException("Download failed (HTTP $responseCode)")
                 }
 
-                val totalBytes = connection.contentLengthLong
+                val totalBytes = activeConnection.contentLengthLong
                 val installer = context.packageManager.packageInstaller
                 val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -54,11 +56,12 @@ class ApkStreamInstaller(
                 }
 
                 val sessionId = installer.createSession(params)
-                session = installer.openSession(sessionId)
+                val activeSession = installer.openSession(sessionId)
+                session = activeSession
 
                 val sizeHint = if (totalBytes > 0L) totalBytes else -1L
-                session.openWrite("app.apk", 0, sizeHint).use { out ->
-                    connection.inputStream.use { input ->
+                activeSession.openWrite("app.apk", 0, sizeHint).use { out ->
+                    activeConnection.inputStream.use { input ->
                         val buffer = ByteArray(32 * 1024)
                         var bytesRead: Int
                         var downloaded = 0L
@@ -75,7 +78,7 @@ class ApkStreamInstaller(
                                 }
                             }
                         }
-                        session.fsync(out)
+                        activeSession.fsync(out)
                     }
                 }
 
@@ -93,8 +96,8 @@ class ApkStreamInstaller(
                 }
 
                 val pendingIntent = PendingIntent.getBroadcast(context, sessionId, callbackIntent, flags)
-                session.commit(pendingIntent.intentSender)
-                session.close()
+                activeSession.commit(pendingIntent.intentSender)
+                activeSession.close()
                 session = null
             } catch (e: Exception) {
                 try {
