@@ -52,5 +52,24 @@ const APPS = [
     bg: "linear-gradient(135deg,#11998e,#0f3443)",
     t1: "3D",
     t2: "BETA"
-  }
+  },
+    {
+    id: "burn-note",
+    name: "Burn Note",
+    dev: "ProPerfect",
+    cat: "Tools",
+    tag: "Self-destructing private notes that vanish after reading",
+    ver: "Soon",
+    vCode: 1,
+    rate: "Soon",
+    soon: true,
+    pkg: "com.burnnote.app",
+    url: "",
+    desc: "Write private notes that automatically burn and disappear after being read. Pre-register now to get Burn Note.",
+    news: "Currently in development. Coming soon to PlayHub!",
+    bg: "linear-gradient(135deg,#f12711,#f5af19)",
+    t1: "BURN",
+    t2: "NOTE"
+    }
+  
 ];
